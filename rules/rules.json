@@ -1,0 +1,45 @@
+/*{
+  "rules":{
+    ".read": true,
+    ".write": true
+  }
+}*/
+{
+   "rules": {
+     //Allow admin to read and write all records
+     ".read": "auth != null && root.child('users').child(auth.uid).child('level').val() == 2",
+     ".write": "auth != null && root.child('users').child(auth.uid).child('level').val() == 2",
+      "users": {
+	    //Allow manager to read all user records
+        ".read": "auth != null && root.child('users').child(auth.uid).child('level').val() == 1",
+         "$uid": {
+		    //Allow users to read only their records
+            ".read": "auth !== null && auth.uid == $uid",
+            //if prefhours changed but level was not changed, and the user is doing this action or a manager, allow write
+            //if level was changed and a manager did it and he changed it to 1, allow write
+            //if manager was changed and a manager did it and user did not have a manager or his manager was this manager, allow write
+            ".write": "auth != null && (root.child('users').child(auth.uid).val() == null || (newData.child('prefHours').val() != data.child('prefHours').val() && newData.child('level').val() == data.child('level').val() && (auth.uid == $uid || root.child('users').child(auth.uid).child('level').val() == 1) || newData.child('level').val() != data.child('level').val() && root.child('users').child(auth.uid).child('level').val() == 1 && newData.child('level').val() == 1 || newData.child('manager').val() != data.child('manager').val() && root.child('users').child(auth.uid).child('level').val() == 1 && (data.child('manager').val() == null || data.child('manager').val().length < 2 || data.child('manager').val() == auth.uid)))"
+         }
+      },
+      "usersTime": {
+	    //Allow managers to read all user time records
+        ".read": "auth != null && root.child('users').child(auth.uid).child('level').val() == 1",
+        ".write": "auth != null && root.child('users').child(auth.uid).child('level').val() == 1",
+        "$uid": {
+          ".read": "auth !== null && auth.uid == $uid",
+          ".write": "auth !== null && auth.uid == $uid"
+        }
+      },
+      "managers": {
+    		"$uid": {
+    			".read": "auth != null && auth.uid == $uid && root.child('users').child(auth.uid).child('level').val() == 1",
+    			".write": "auth != null && auth.uid == $uid && root.child('users').child(auth.uid).child('level').val() == 1"
+    		}
+      },
+      "reportDates": {
+			".read": "auth != null",
+    		".write": "auth != null"
+      }
+   }
+}
+
